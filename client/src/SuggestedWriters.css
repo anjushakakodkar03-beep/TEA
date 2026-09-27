@@ -1,0 +1,226 @@
+/* ================= SUGGESTED WRITERS ================= */
+
+.suggested-writers-section {
+    padding: 72px 0;
+}
+
+.suggested-writers-heading {
+    margin-bottom: 28px;
+}
+
+.suggested-writers-heading p {
+    margin-top: 10px;
+    color: #777078;
+}
+
+/* Writers grid */
+.suggested-writers-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+}
+
+/* Base card */
+.suggested-writer-card {
+    min-width: 0;
+    padding: 26px 20px;
+    text-align: center;
+    background: #FCE4EC;
+    border: 1px solid #F4C7D6;
+    border-radius: 24px;
+    box-shadow: 0 8px 24px rgba(90, 50, 70, 0.07);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Alternate lemon yellow cards */
+.suggested-writer-card:nth-child(even) {
+    background: #FFF4B8;
+    border-color: #F1E39A;
+}
+
+/* Card hover effect */
+.suggested-writer-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 32px rgba(90, 50, 70, 0.13);
+}
+
+/* Profile avatar */
+.suggested-writer-avatar {
+    width: 84px;
+    height: 84px;
+    margin: 0 auto 16px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #F6C5D8;
+    color: #8B3F60;
+    font-size: 30px;
+    font-weight: 700;
+    border: 4px solid rgba(255, 255, 255, 0.75);
+    box-shadow: 0 4px 12px rgba(90, 50, 70, 0.08);
+}
+
+/* Yellow card avatar */
+.suggested-writer-card:nth-child(even) .suggested-writer-avatar {
+    background: #F6E58D;
+    color: #705A16;
+}
+
+.suggested-writer-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Writer name */
+.suggested-writer-card h3 {
+    margin: 0;
+    color: #352B33;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+/* Username */
+.suggested-writer-username {
+    margin: 6px 0 12px;
+    color: #9B5574;
+    font-size: 13px;
+}
+
+.suggested-writer-card:nth-child(even) .suggested-writer-username {
+    color: #806817;
+}
+
+/* Bio */
+.suggested-writer-bio {
+    min-height: 54px;
+    margin: 0 0 20px;
+    color: #65545D;
+    font-size: 13px;
+    line-height: 1.7;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.suggested-writer-card:nth-child(even) .suggested-writer-bio {
+    color: #62572D;
+}
+
+/* Action buttons */
+.suggested-writer-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.suggested-writer-actions button {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.suggested-writer-actions button:hover:not(:disabled) {
+    transform: translateY(-2px);
+}
+
+/* Follow button */
+.suggested-writer-follow {
+    border: 1px solid #D66D96;
+    background: #D66D96;
+    color: #FFFFFF;
+}
+
+.suggested-writer-follow:hover:not(:disabled) {
+    background: #BD527D;
+}
+
+/* Follow button on yellow cards */
+.suggested-writer-card:nth-child(even) .suggested-writer-follow {
+    border-color: #8C751F;
+    background: #8C751F;
+    color: #FFFFFF;
+}
+
+.suggested-writer-card:nth-child(even) .suggested-writer-follow:hover:not(:disabled) {
+    background: #705B12;
+}
+
+/* Disabled follow button */
+.suggested-writer-follow:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+/* View profile button */
+.suggested-writer-view {
+    border: 1px solid #DCA4BA;
+    background: rgba(255, 255, 255, 0.65);
+    color: #75445A;
+}
+
+.suggested-writer-view:hover {
+    background: #FFFFFF;
+}
+
+/* View profile on yellow cards */
+.suggested-writer-card:nth-child(even) .suggested-writer-view {
+    border-color: #D7C66F;
+    color: #65531A;
+}
+
+.suggested-writer-card:nth-child(even) .suggested-writer-view:hover {
+    background: #FFFFFF;
+}
+
+/* Empty state */
+.suggested-writers-empty {
+    padding: 36px 20px;
+    text-align: center;
+    background: #FFF0F5;
+    border: 1px dashed #E9B9CD;
+    border-radius: 22px;
+}
+
+.suggested-writers-empty>span {
+    font-size: 34px;
+}
+
+.suggested-writers-empty h3 {
+    margin: 10px 0 6px;
+}
+
+.suggested-writers-empty p {
+    margin: 0;
+    color: #777078;
+}
+
+/* Tablet */
+@media (max-width: 1000px) {
+    .suggested-writers-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Mobile */
+@media (max-width: 560px) {
+    .suggested-writers-section {
+        padding: 48px 0;
+    }
+
+    .suggested-writers-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .suggested-writer-card {
+        padding: 24px 20px;
+    }
+}

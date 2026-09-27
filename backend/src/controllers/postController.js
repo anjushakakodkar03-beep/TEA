@@ -120,6 +120,32 @@ const getPosts = async (req, res, next) => {
 };
 
 
+const getMyPosts = async (req, res, next) => {
+    try {
+        const [posts] = await pool.execute(
+            `SELECT
+                p.*,
+                u.name AS authorName,
+                u.username AS authorUsername
+             FROM posts p
+             JOIN users u ON p.author = u.id
+             WHERE p.author = ?
+             ORDER BY p.createdAt DESC`,
+            [req.user.id]
+        );
+
+        posts.forEach((post) => {
+            post.contentJson = parseJsonField(post.contentJson);
+            post.overlays = parseJsonField(post.overlays);
+        });
+
+        res.json(posts);
+    } catch (error) {
+        next(error);
+    }
+};
+
+
 const getPostById = async (req, res, next) => {
     try {
         const [posts] = await pool.execute(
@@ -288,6 +314,7 @@ const deletePost = async (req, res, next) => {
 module.exports = {
     createPost,
     getPosts,
+    getMyPosts,
     getPostById,
     updatePost,
     deletePost

@@ -1,0 +1,367 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  --cream: #fffaf0;
+  --pink: #f8b9c8;
+  --pink-dark: #ed91aa;
+  --yellow: #ffe7a1;
+  --ink: #292522;
+  --white: #fffefa;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--ink);
+  background: var(--cream);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.scribbly-page {
+  min-height: 100vh;
+  background: var(--cream);
+}
+
+.topbar {
+  height: 82px;
+  padding: 0 7%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--ink);
+}
+
+.logo {
+  color: var(--ink);
+  text-decoration: none;
+  font-family: 'Nunito', sans-serif;
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: -2px;
+}
+
+.logo span {
+  color: #e97999;
+}
+
+.tagline {
+  font-size: 20px;
+  font-weight: 600;
+  font-style: italic;
+}
+
+.auth-layout {
+  min-height: calc(100vh - 82px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.welcome-panel {
+  position: relative;
+  overflow: hidden;
+  background: var(--pink);
+  border-right: 2px solid var(--ink);
+  padding: 70px 9%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.welcome-content {
+  max-width: 490px;
+  margin: auto;
+  width: 100%;
+}
+
+.eyebrow {
+  font-size: 20px;
+  letter-spacing: 2px;
+  font-weight: 800;
+}
+
+.welcome-content h1 {
+  font-family: 'Nunito', sans-serif;
+  font-size: clamp(44px, 5vw, 72px);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -3px;
+  margin: 24px 0;
+}
+
+.welcome-content h1 span {
+  color: var(--white);
+  -webkit-text-stroke: 1.5px var(--ink);
+  paint-order: stroke fill;
+}
+
+.welcome-content>p {
+  max-width: 390px;
+  font-size: 20px;
+  line-height: 1.9;
+}
+
+.note-card {
+  position: relative;
+  margin-top: 42px;
+  background: var(--cream);
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  box-shadow: 6px 6px 0 var(--ink);
+  padding: 23px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transform: rotate(-2deg);
+}
+
+.note-icon {
+  font-size: 32px;
+}
+
+.note-card strong {
+  font-family: 'Nunito', sans-serif;
+  font-size: 20px;
+}
+
+.note-card p {
+  margin: 6px 0 0;
+  font-size: 20px;
+}
+
+.note-heart {
+  margin-left: auto;
+  font-size: 30px;
+}
+
+.doodle {
+  position: absolute;
+  font-size: 90px;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.doodle-star {
+  top: 45px;
+  right: 10%;
+  transform: rotate(15deg);
+}
+
+.doodle-heart {
+  top: 35%;
+  right: 6%;
+  font-size: 75px;
+  transform: rotate(15deg);
+}
+
+.welcome-footer {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-align: center;
+  margin-top: 50px;
+}
+
+.form-panel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 50px 8%;
+}
+
+.form-card {
+  width: 100%;
+  max-width: 430px;
+}
+
+.form-top {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.form-sticker {
+  display: inline-flex;
+  width: 52px;
+  height: 52px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--ink);
+  background: var(--yellow);
+  border-radius: 50%;
+  font-size: 30px;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.form-kicker {
+  margin: 22px 0 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.form-top h2 {
+  font-family: 'Nunito', sans-serif;
+  font-size: 34px;
+  font-weight: 900;
+  margin: 0;
+  letter-spacing: -1px;
+}
+
+.form-subtitle {
+  color: #756d67;
+  font-size: 20px;
+  margin-top: 10px;
+}
+
+.form-card form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-card label {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 13px 0 8px;
+}
+
+.form-card input {
+  width: 100%;
+  min-height: 49px;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: var(--white);
+  padding: 0 15px;
+  outline: none;
+  font-size: 13px;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.form-card input:focus {
+  box-shadow: 5px 5px 0 var(--pink-dark);
+  transform: translate(-1px, -1px);
+}
+
+.form-card input::placeholder {
+  color: #aaa09a;
+}
+
+.submit-btn {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 27px;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: var(--pink);
+  box-shadow: 4px 4px 0 var(--ink);
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.submit-btn:hover {
+  background: var(--yellow);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--ink);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.form-message {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  margin-top: 20px;
+  overflow-wrap: anywhere;
+}
+
+.switch-form {
+  text-align: center;
+  font-size: 20px;
+  margin-top: 27px;
+}
+
+.switch-form button {
+  border: none;
+  background: transparent;
+  color: #c64f75;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.form-bottom {
+  margin-top: 35px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #8a817a;
+}
+
+@media (max-width: 800px) {
+  .auth-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .welcome-panel {
+    min-height: 440px;
+    border-right: none;
+    border-bottom: 2px solid var(--ink);
+    padding: 45px 8%;
+  }
+
+  .welcome-content h1 {
+    font-size: 52px;
+  }
+
+  .doodle-heart {
+    top: 20%;
+  }
+
+  .form-panel {
+    padding: 50px 7%;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    height: 70px;
+    padding: 0 6%;
+  }
+
+  .logo {
+    font-size: 30px;
+  }
+
+  .tagline {
+    font-size: 20px;
+  }
+
+  .welcome-content h1 {
+    font-size: 44px;
+  }
+
+  .welcome-panel {
+    min-height: 400px;
+  }
+
+  .doodle-star {
+    font-size: 55px;
+  }
+}
+
+nav a {
+  font-size: 20px !important;
+  font-weight: 500;
+}

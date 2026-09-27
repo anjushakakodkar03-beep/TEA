@@ -1,0 +1,338 @@
+
+/* ===== MAIN PAGE ===== */
+
+.blog-post-page {
+  min-height: 100vh;
+  padding: 28px 5%;
+  background: #fff9ef;
+  color: #242124;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.blog-post-message {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  gap: 16px;
+  background: #fff9ef;
+  text-align: center;
+}
+
+/* ===== BACK BUTTON ===== */
+
+.back-home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  margin-bottom: 26px;
+  background: #fffdf8;
+  color: #242124;
+  border: 1.5px solid #2b2929;
+  border-radius: 10px;
+  box-shadow: 3px 4px 0 #2b2929;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.back-home-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 6px 0 #2b2929;
+}
+
+/* ===== TWO-COLUMN LAYOUT ===== */
+
+.blog-post-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.85fr) minmax(0, 1.15fr);
+  align-items: stretch;
+  gap: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ===== LEFT IMAGE PANEL ===== */
+
+.blog-post-image-panel {
+  position: sticky;
+  top: 25px;
+  align-self: start;
+  min-width: 0;
+  background: #e8def8;
+  padding: 18px;
+  border: 1.5px solid #2b2929;
+  border-radius: 22px;
+  box-shadow: 5px 6px 0 #2b2929;
+  overflow: hidden;
+}
+
+.blog-post-cover {
+  display: block;
+  width: 100%;
+  height: min(72vh, 680px);
+  min-height: 350px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid rgba(43, 41, 41, 0.15);
+}
+
+.blog-post-cover-placeholder {
+  min-height: 450px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #fff0a8;
+  border-radius: 14px;
+  color: #514158;
+  text-align: center;
+}
+
+.blog-post-cover-placeholder span {
+  font-size: 75px;
+}
+
+.image-note {
+  display: inline-block;
+  margin-top: 18px;
+  padding: 11px 18px;
+  background: #f6c3d4;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  transform: rotate(-3deg);
+}
+
+/* ===== RIGHT ARTICLE CARD ===== */
+
+.blog-post-article {
+  min-width: 0;
+  padding: 42px;
+  background: #fffdf8;
+  border: 1.5px solid #2b2929;
+  border-radius: 22px;
+  box-shadow: 5px 6px 0 #2b2929;
+}
+
+.story-label {
+  display: inline-block;
+  padding: 8px 16px;
+  background: #fff0a8;
+  border-radius: 30px;
+  color: #514158;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.blog-post-title {
+  margin: 24px 0 12px;
+  font-size: clamp(30px, 3vw, 48px);
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.blog-post-subtitle {
+  margin: 0 0 22px;
+  color: #a34e72;
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* ===== AUTHOR ===== */
+
+.blog-post-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.author-avatar {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  background: #d8f0e4;
+  border: 1px solid #2b2929;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.author-name {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.author-caption {
+  margin: 0;
+  color: #8b7d88;
+  font-size: 12px;
+}
+
+.story-divider {
+  height: 1px;
+  margin: 25px 0;
+  background: #eadfe5;
+}
+
+/* ===== STORY CONTENT ===== */
+
+.blog-post-content {
+  font-size: 16px;
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+}
+
+.story-block {
+  margin-bottom: 20px;
+}
+
+.story-paragraph {
+  margin: 0 0 22px;
+  white-space: pre-wrap;
+}
+
+.story-html {
+  overflow-wrap: anywhere;
+}
+
+.story-html p {
+  margin: 0 0 22px;
+}
+
+.story-html h1,
+.story-html h2,
+.story-html h3 {
+  margin: 28px 0 15px;
+  line-height: 1.35;
+}
+
+.story-html img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 25px auto;
+  border: 1.5px solid #2b2929;
+  border-radius: 16px;
+  box-shadow: 4px 5px 0 #2b2929;
+}
+
+.story-html figure {
+  max-width: 100%;
+  margin: 25px 0;
+}
+
+.story-html figcaption {
+  margin-top: 10px;
+  color: #8b7d88;
+  font-size: 13px;
+  text-align: center;
+}
+
+.story-html blockquote {
+  margin: 25px 0;
+  padding: 18px 22px;
+  background: #f8d1df;
+  border-left: 5px solid #b85a80;
+  border-radius: 10px;
+}
+
+.story-html ul,
+.story-html ol {
+  padding-left: 25px;
+  margin-bottom: 22px;
+}
+
+.story-html a {
+  color: #a34e72;
+  text-decoration: underline;
+}
+
+.story-ending {
+  margin-top: 35px;
+  padding: 18px;
+  background: #f8d1df;
+  border-radius: 14px;
+  color: #514158;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+@media (max-width: 900px) {
+  .blog-post-layout {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+
+  .blog-post-image-panel {
+    position: relative;
+    top: auto;
+  }
+
+  .blog-post-cover {
+    height: 380px;
+    min-height: 0;
+  }
+
+  .blog-post-article {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 550px) {
+  .blog-post-page {
+    padding: 18px 14px;
+  }
+
+  .blog-post-image-panel {
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .blog-post-cover {
+    height: 280px;
+  }
+
+  .blog-post-article {
+    padding: 22px 18px;
+    border-radius: 16px;
+  }
+
+  .blog-post-title {
+    font-size: 30px;
+  }
+
+  .blog-post-subtitle {
+    font-size: 18px;
+  }
+
+  .blog-post-content {
+    font-size: 15px;
+    line-height: 1.8;
+  }
+}
+/* ===== SCRIBBLY DOODLE BACKGROUND ===== */
+
+.blog-post-page {
+  background-color: #fff9ef;
+
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cg fill='none' stroke='%23c49bb8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' opacity='.55'%3E%3Cpath d='M35 25 C15 8 5 35 35 52 C65 35 55 8 35 25Z'/%3E%3Cpath d='M125 20 L130 33 L143 38 L130 43 L125 56 L120 43 L107 38 L120 33Z'/%3E%3Cpath d='M45 110 Q65 95 85 110 L85 140 Q65 125 45 140Z M85 110 Q105 95 125 110 L125 140 Q105 125 85 140Z'/%3E%3Cpath d='M35 155 l5 8 9 2 -7 6 -1 9 -6 -7 -9 1 5 -8 -3 -8 7 3Z'/%3E%3Ccircle cx='145' cy='105' r='9'/%3E%3Cpath d='M145 91 V119 M131 105 H159 M135 95 L155 115 M155 95 L135 115'/%3E%3C/g%3E%3C/svg%3E");
+
+  background-repeat: repeat;
+  background-size: 180px 180px;
+}
