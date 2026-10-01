@@ -31,18 +31,95 @@ function AuthPage() {
   });
 
   const [message, setMessage] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Validate name
+  const validateName = (name) => {
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      return "Please enter your full name.";
+    }
+
+    if (trimmedName.length < 2) {
+      return "Name must contain at least 2 characters.";
+    }
+
+    // Allows alphabets and spaces only
+    const nameRegex = /^[A-Za-z]+(?:\s+[A-Za-z]+)*$/;
+
+    if (!nameRegex.test(trimmedName)) {
+      return "Name can contain only letters and spaces.";
+    }
+
+    return "";
+  };
+
+  // Validate phone number
+  const validatePhone = (phone) => {
+    if (!phone) {
+      return "Please enter your phone number.";
+    }
+
+    if (!/^\d+$/.test(phone)) {
+      return "Phone number can contain only digits.";
+    }
+
+    if (phone.length !== 10) {
+      return "Phone number must contain exactly 10 digits.";
+    }
+
+    return "";
+  };
+
   const handleChange = (e) => {
+    const { name, value } = e.target;
+
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+
+    // Validate name while typing
+    if (name === "name" && !isLogin) {
+      setNameError(validateName(value));
+    }
+
+    // Validate phone while typing
+    if (name === "phoneNo" && !isLogin) {
+      setPhoneError(validatePhone(value));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
+
+    // Validate registration fields
+    if (!isLogin) {
+      const validationError = validateName(formData.name);
+      const phoneValidationError = validatePhone(formData.phoneNo);
+
+      if (validationError) {
+        setNameError(validationError);
+      } else {
+        setNameError("");
+      }
+
+      if (phoneValidationError) {
+        setPhoneError(phoneValidationError);
+      } else {
+        setPhoneError("");
+      }
+
+      // Stop registration if validation fails
+      if (validationError || phoneValidationError) {
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -72,7 +149,7 @@ function AuthPage() {
     } catch (error) {
       setMessage(
         error.response?.data?.message ||
-        "Something went wrong. Please try again."
+          "Something went wrong. Please try again."
       );
     } finally {
       setLoading(false);
@@ -85,7 +162,10 @@ function AuthPage() {
         <a href="/" className="logo">
           scribbly<span>.</span>
         </a>
-        <span className="tagline">Every thought has a story.</span>
+
+        <span className="tagline">
+          Every thought has a story.
+        </span>
       </header>
 
       <main className="auth-layout">
@@ -137,7 +217,9 @@ function AuthPage() {
                 {isLogin ? "HEY, YOU'RE BACK!" : "LET'S GET STARTED"}
               </p>
 
-              <h2>{isLogin ? "Welcome back!" : "Join the story!"}</h2>
+              <h2>
+                {isLogin ? "Welcome back!" : "Join the story!"}
+              </h2>
 
               <p className="form-subtitle">
                 {isLogin
@@ -150,6 +232,7 @@ function AuthPage() {
               {!isLogin && (
                 <>
                   <label htmlFor="name">Full name</label>
+
                   <input
                     id="name"
                     name="name"
@@ -157,9 +240,17 @@ function AuthPage() {
                     value={formData.name}
                     onChange={handleChange}
                     required
+                    className={nameError ? "input-error" : ""}
                   />
 
+                  {nameError && (
+                    <p className="field-error" role="alert">
+                      {nameError}
+                    </p>
+                  )}
+
                   <label htmlFor="username">Username</label>
+
                   <input
                     id="username"
                     name="username"
@@ -170,18 +261,30 @@ function AuthPage() {
                   />
 
                   <label htmlFor="phoneNo">Phone number</label>
+
                   <input
                     id="phoneNo"
+                    type="tel"
                     name="phoneNo"
-                    placeholder="Your phone number"
+                    placeholder="10-digit phone number"
                     value={formData.phoneNo}
                     onChange={handleChange}
                     required
+                    maxLength={10}
+                    inputMode="numeric"
+                    className={phoneError ? "input-error" : ""}
                   />
+
+                  {phoneError && (
+                    <p className="field-error" role="alert">
+                      {phoneError}
+                    </p>
+                  )}
                 </>
               )}
 
               <label htmlFor="email">Email address</label>
+
               <input
                 id="email"
                 type="email"
@@ -193,6 +296,7 @@ function AuthPage() {
               />
 
               <label htmlFor="password">Password</label>
+
               <input
                 id="password"
                 type="password"
@@ -212,8 +316,8 @@ function AuthPage() {
                 {loading
                   ? "Please wait..."
                   : isLogin
-                    ? "Let's get writing →"
-                    : "Create my account →"}
+                  ? "Let's get writing →"
+                  : "Create my account →"}
               </button>
             </form>
 
@@ -224,13 +328,17 @@ function AuthPage() {
             )}
 
             <div className="switch-form">
-              {isLogin ? "New to Scribbly?" : "Already have an account?"}
+              {isLogin
+                ? "New to Scribbly?"
+                : "Already have an account?"}
 
               <button
                 type="button"
                 onClick={() => {
                   setIsLogin(!isLogin);
                   setMessage("");
+                  setNameError("");
+                  setPhoneError("");
                 }}
               >
                 {isLogin ? " Sign up" : " Log in"}
@@ -252,10 +360,23 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<AuthPage />} />
+
         <Route path="/home" element={<Home />} />
-        <Route path="/create-post" element={<CreatePost />} />
-        <Route path="/post/:id" element={<BlogPost />} />
-        <Route path="/profile" element={<Profile />} />
+
+        <Route
+          path="/create-post"
+          element={<CreatePost />}
+        />
+
+        <Route
+          path="/post/:id"
+          element={<BlogPost />}
+        />
+
+        <Route
+          path="/profile"
+          element={<Profile />}
+        />
 
         {/* Public profile page */}
         <Route
@@ -264,7 +385,10 @@ function App() {
         />
 
         {/* Redirect unknown routes */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route
+          path="*"
+          element={<Navigate to="/" replace />}
+        />
       </Routes>
     </BrowserRouter>
   );

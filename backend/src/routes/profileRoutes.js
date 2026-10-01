@@ -8,6 +8,7 @@ const { protect } = require("../middleware/authMiddleware");
 
 const {
     updateMyProfile,
+    searchUsers,
     getPublicProfile,
     getSuggestedWriters,
     toggleFollow,
@@ -15,41 +16,151 @@ const {
     getFollowing,
 } = require("../controllers/profileController");
 
-const uploadDirectory = path.join(__dirname, "../../uploads/profilePics");
+
+// ==========================================
+// PROFILE IMAGE UPLOAD DIRECTORY
+// ==========================================
+
+const uploadDirectory = path.join(
+    __dirname,
+    "../../uploads/profilePics"
+);
+
 if (!fs.existsSync(uploadDirectory)) {
-    fs.mkdirSync(uploadDirectory, { recursive: true });
+    fs.mkdirSync(uploadDirectory, {
+        recursive: true,
+    });
 }
 
+
+// ==========================================
+// MULTER STORAGE
+// ==========================================
+
 const storage = multer.diskStorage({
-    destination: (req, file, callback) => callback(null, uploadDirectory),
+    destination: (req, file, callback) => {
+        callback(null, uploadDirectory);
+    },
+
     filename: (req, file, callback) => {
-        const extension = path.extname(file.originalname).toLowerCase();
-        const uniqueName = `profile-${req.user.id}-${Date.now()}${extension}`;
+        const extension = path
+            .extname(file.originalname)
+            .toLowerCase();
+
+        const uniqueName =
+            `profile-${req.user.id}-${Date.now()}${extension}`;
+
         callback(null, uniqueName);
     },
 });
 
+
+// ==========================================
+// FILE FILTER
+// ==========================================
+
 const fileFilter = (req, file, callback) => {
     if (!file.mimetype.startsWith("image/")) {
-        return callback(new Error("Only image files are allowed."));
+        return callback(
+            new Error("Only image files are allowed.")
+        );
     }
+
     callback(null, true);
 };
+
+
+// ==========================================
+// MULTER CONFIGURATION
+// ==========================================
 
 const upload = multer({
     storage,
     fileFilter,
-    limits: { fileSize: 5 * 1024 * 1024 },
+    limits: {
+        fileSize: 5 * 1024 * 1024,
+    },
 });
 
-router.put("/me", protect, upload.single("profilePic"), updateMyProfile);
 
-// Keep this route above /:username so "suggested" is not treated as a username.
-router.get("/suggested", protect, getSuggestedWriters);
+// ==========================================
+// UPDATE MY PROFILE
+// ==========================================
 
-router.post("/follow/:id", protect, toggleFollow);
-router.get("/:id/followers", getFollowers);
-router.get("/:id/following", getFollowing);
-router.get("/:username", getPublicProfile);
+router.put(
+    "/me",
+    protect,
+    upload.single("profilePic"),
+    updateMyProfile
+);
+
+
+// ==========================================
+// SEARCH USERS
+// IMPORTANT: This must come BEFORE /:username
+// ==========================================
+
+router.get(
+    "/search",
+    searchUsers
+);
+
+
+// ==========================================
+// SUGGESTED WRITERS
+// ==========================================
+
+router.get(
+    "/suggested",
+    protect,
+    getSuggestedWriters
+);
+
+
+// ==========================================
+// FOLLOW / UNFOLLOW
+// ==========================================
+
+router.post(
+    "/follow/:id",
+    protect,
+    toggleFollow
+);
+
+
+// ==========================================
+// FOLLOWERS
+// ==========================================
+
+router.get(
+    "/:id/followers",
+    getFollowers
+);
+
+
+// ==========================================
+// FOLLOWING
+// ==========================================
+
+router.get(
+    "/:id/following",
+    getFollowing
+);
+
+
+// ==========================================
+// PUBLIC PROFILE
+// IMPORTANT: Keep this LAST
+// ==========================================
+
+router.get(
+    "/:username",
+    getPublicProfile
+);
+
+
+// ==========================================
+// EXPORT ROUTER
+// ==========================================
 
 module.exports = router;

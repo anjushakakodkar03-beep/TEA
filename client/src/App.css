@@ -365,3 +365,22 @@ nav a {
   font-size: 20px !important;
   font-weight: 500;
 }
+
+.input-error {
+  border: 1px solid #e5738a !important;
+}
+
+.field-error {
+  color: #d85b72;
+  font-size: 20px;
+  margin: -8px 0 12px;
+}
+.input-error {
+  border: 1px solid #e5738a !important;
+}
+
+.field-error {
+  color: #d85b72;
+  font-size: 20px;
+  margin: -8px 0 12px;
+}

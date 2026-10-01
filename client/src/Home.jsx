@@ -22,6 +22,9 @@ function Home() {
     const [searchInput, setSearchInput] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const [showSearchResults, setShowSearchResults] = useState(false);
+    const [userSuggestions, setUserSuggestions] = useState([]);
+    const [userSearchResults, setUserSearchResults] = useState([]);
+    const [userSearchLoading, setUserSearchLoading] = useState(false);
 
     // Categories
     const categories = [
@@ -228,6 +231,8 @@ function Home() {
         setSearchInput("");
         setSearchTerm("");
         setShowSearchResults(false);
+        setUserSuggestions([]);
+        setUserSearchResults([]);
     };
 
     // Close search overlay
@@ -236,9 +241,11 @@ function Home() {
         setSearchInput("");
         setSearchTerm("");
         setShowSearchResults(false);
+        setUserSuggestions([]);
+        setUserSearchResults([]);
     };
 
-    // Matching suggestions while typing
+    // Matching article suggestions while typing
     const searchSuggestions = useMemo(() => {
         const query = searchInput.trim().toLowerCase();
 
@@ -251,7 +258,53 @@ function Home() {
             .slice(0, 6);
     }, [articles, searchInput]);
 
-    // Search results after pressing Enter
+    // Search users from backend while typing
+    useEffect(() => {
+        const query = searchInput.trim();
+
+        if (!query) {
+            setUserSuggestions([]);
+            setUserSearchLoading(false);
+            return;
+        }
+
+        let cancelled = false;
+
+        const timer = setTimeout(async () => {
+            try {
+                setUserSearchLoading(true);
+
+                const response = await fetch(
+                    `http://localhost:5000/api/profiles/search?q=${encodeURIComponent(query)}`
+                );
+
+                const data = await response.json().catch(() => []);
+
+                if (!response.ok) {
+                    throw new Error(data.message || "Unable to search users.");
+                }
+
+                if (!cancelled) {
+                    setUserSuggestions(Array.isArray(data) ? data : []);
+                }
+            } catch {
+                if (!cancelled) {
+                    setUserSuggestions([]);
+                }
+            } finally {
+                if (!cancelled) {
+                    setUserSearchLoading(false);
+                }
+            }
+        }, 250);
+
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
+    }, [searchInput]);
+
+    // Search articles locally after pressing Enter
     const searchResults = useMemo(() => {
         const query = searchTerm.trim().toLowerCase();
 
@@ -263,7 +316,7 @@ function Home() {
     }, [articles, searchTerm]);
 
     // Submit search
-    const handleSearchSubmit = (e) => {
+    const handleSearchSubmit = async (e) => {
         e.preventDefault();
 
         const query = searchInput.trim();
@@ -272,12 +325,38 @@ function Home() {
 
         setSearchTerm(query);
         setShowSearchResults(true);
+
+        try {
+            setUserSearchLoading(true);
+
+            const response = await fetch(
+                `http://localhost:5000/api/profiles/search?q=${encodeURIComponent(query)}`
+            );
+
+            const data = await response.json().catch(() => []);
+
+            if (!response.ok) {
+                throw new Error(data.message || "Unable to search users.");
+            }
+
+            setUserSearchResults(Array.isArray(data) ? data : []);
+        } catch {
+            setUserSearchResults([]);
+        } finally {
+            setUserSearchLoading(false);
+        }
     };
 
-    // Click a suggestion to open the story
+    // Click a story suggestion to open the story
     const handleSuggestionClick = (article) => {
         closeSearch();
         navigate(`/post/${article.id}`);
+    };
+
+    // Click a user suggestion/result to open their public profile
+    const handleUserClick = (user) => {
+        closeSearch();
+        navigate(`/user/${encodeURIComponent(user.username)}`);
     };
 
     // Select a category in the search overlay
@@ -1079,7 +1158,64 @@ function Home() {
                         {/* Suggestions while typing */}
                         {searchInput.trim() && !showSearchResults && (
                             <div className="search-suggestions-panel">
+                                {/* USER SUGGESTIONS */}
                                 <div className="search-panel-label">
+                                    <span>♡</span> People
+                                </div>
+
+                                {userSearchLoading ? (
+                                    <p className="search-no-suggestions">
+                                        ✨ Finding people...
+                                    </p>
+                                ) : userSuggestions.length > 0 ? (
+                                    userSuggestions.slice(0, 6).map((user) => (
+                                        <button
+                                            type="button"
+                                            className="search-suggestion-item"
+                                            key={`user-${user.id}`}
+                                            onClick={() => handleUserClick(user)}
+                                        >
+                                            <span className="suggestion-icon">
+                                                {user.profilePic ? (
+                                                    <img
+                                                        src={
+                                                            user.profilePic.startsWith("http")
+                                                                ? user.profilePic
+                                                                : `http://localhost:5000${user.profilePic}`
+                                                        }
+                                                        alt=""
+                                                        style={{
+                                                            width: "32px",
+                                                            height: "32px",
+                                                            borderRadius: "50%",
+                                                            objectFit: "cover",
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    "♡"
+                                                )}
+                                            </span>
+
+                                            <span className="suggestion-text">
+                                                <strong>
+                                                    {user.name || user.username || "Scribbly User"}
+                                                </strong>
+                                                <small>
+                                                    @{user.username || "user"}
+                                                </small>
+                                            </span>
+
+                                            <span className="suggestion-arrow">↗</span>
+                                        </button>
+                                    ))
+                                ) : (
+                                    <p className="search-no-suggestions">
+                                        No matching people found.
+                                    </p>
+                                )}
+
+                                {/* ARTICLE SUGGESTIONS */}
+                                <div className="search-panel-label" style={{ marginTop: "18px" }}>
                                     <span>✎</span> Matching stories
                                 </div>
 
@@ -1088,21 +1224,15 @@ function Home() {
                                         <button
                                             type="button"
                                             className="search-suggestion-item"
-                                            key={article.id}
-                                            onClick={() =>
-                                                handleSuggestionClick(article)
-                                            }
+                                            key={`article-${article.id}`}
+                                            onClick={() => handleSuggestionClick(article)}
                                         >
-                                            <span className="suggestion-icon">
-                                                ✎
-                                            </span>
+                                            <span className="suggestion-icon">✎</span>
 
                                             <span className="suggestion-text">
                                                 <strong>
-                                                    {article.title ||
-                                                        "Untitled story"}
+                                                    {article.title || "Untitled story"}
                                                 </strong>
-
                                                 <small>
                                                     {article.authorName ||
                                                         article.authorUsername ||
@@ -1112,15 +1242,12 @@ function Home() {
                                                 </small>
                                             </span>
 
-                                            <span className="suggestion-arrow">
-                                                ↗
-                                            </span>
+                                            <span className="suggestion-arrow">↗</span>
                                         </button>
                                     ))
                                 ) : (
                                     <p className="search-no-suggestions">
-                                        No matching stories found. Try another
-                                        keyword.
+                                        No matching stories found.
                                     </p>
                                 )}
                             </div>
@@ -1140,40 +1267,105 @@ function Home() {
                                         </h3>
 
                                         <p>
-                                            Results for{" "}
-                                            <strong>"{searchTerm}"</strong>
+                                            Results for <strong>"{searchTerm}"</strong>
                                         </p>
                                     </div>
-
-                                    <span className="search-results-count">
-                                        {searchResults.length}{" "}
-                                        {searchResults.length === 1
-                                            ? "story"
-                                            : "stories"}
-                                    </span>
                                 </div>
 
-                                {loading ? (
-                                    <p className="posts-message">
-                                        ✨ Loading stories...
-                                    </p>
-                                ) : error ? (
-                                    <p className="posts-message posts-error">
-                                        {error}
-                                    </p>
-                                ) : searchResults.length === 0 ? (
-                                    <div className="search-empty-state">
-                                        <span>🔎</span>
-                                        <h3>No stories found!</h3>
-                                        <p>
-                                            Try another keyword to discover a
-                                            story.
-                                        </p>
+                                {/* PEOPLE RESULTS */}
+                                <div className="search-results-section">
+                                    <div className="search-panel-label">
+                                        <span>♡</span> People
+                                        <span className="search-results-count">
+                                            {userSearchResults.length}
+                                        </span>
                                     </div>
-                                ) : (
-                                    <div className="search-modal-results-grid">
-                                        {searchResults.map(
-                                            (article, index) => (
+
+                                    {userSearchLoading ? (
+                                        <p className="posts-message">
+                                            ✨ Finding people...
+                                        </p>
+                                    ) : userSearchResults.length === 0 ? (
+                                        <p className="search-no-suggestions">
+                                            No matching people found.
+                                        </p>
+                                    ) : (
+                                        <div className="search-user-results">
+                                            {userSearchResults.map((user) => (
+                                                <button
+                                                    type="button"
+                                                    className="search-suggestion-item"
+                                                    key={`result-user-${user.id}`}
+                                                    onClick={() => handleUserClick(user)}
+                                                >
+                                                    <span className="suggestion-icon">
+                                                        {user.profilePic ? (
+                                                            <img
+                                                                src={
+                                                                    user.profilePic.startsWith("http")
+                                                                        ? user.profilePic
+                                                                        : `http://localhost:5000${user.profilePic}`
+                                                                }
+                                                                alt=""
+                                                                style={{
+                                                                    width: "38px",
+                                                                    height: "38px",
+                                                                    borderRadius: "50%",
+                                                                    objectFit: "cover",
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            (user.name || user.username || "U")
+                                                                .charAt(0)
+                                                                .toUpperCase()
+                                                        )}
+                                                    </span>
+
+                                                    <span className="suggestion-text">
+                                                        <strong>
+                                                            {user.name || user.username || "Scribbly User"}
+                                                        </strong>
+                                                        <small>
+                                                            @{user.username || "user"}
+                                                            {user.bio ? ` · ${user.bio}` : ""}
+                                                        </small>
+                                                    </span>
+
+                                                    <span className="suggestion-arrow">View profile ↗</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* STORY RESULTS */}
+                                <div className="search-results-section" style={{ marginTop: "28px" }}>
+                                    <div className="search-panel-label">
+                                        <span>✎</span> Stories
+                                        <span className="search-results-count">
+                                            {searchResults.length}
+                                        </span>
+                                    </div>
+
+                                    {loading ? (
+                                        <p className="posts-message">
+                                            ✨ Loading stories...
+                                        </p>
+                                    ) : error ? (
+                                        <p className="posts-message posts-error">
+                                            {error}
+                                        </p>
+                                    ) : searchResults.length === 0 ? (
+                                        <div className="search-empty-state">
+                                            <span>🔎</span>
+                                            <h3>No stories found!</h3>
+                                            <p>
+                                                Try another keyword to discover a story.
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div className="search-modal-results-grid">
+                                            {searchResults.map((article, index) => (
                                                 <article
                                                     className="article-card"
                                                     key={article.id}
@@ -1186,57 +1378,43 @@ function Home() {
                                                             article.imageUrl
                                                                 ? {
                                                                     backgroundImage: `url("${article.imageUrl}")`,
-                                                                    backgroundSize:
-                                                                        "cover",
-                                                                    backgroundPosition:
-                                                                        "center",
+                                                                    backgroundSize: "cover",
+                                                                    backgroundPosition: "center",
                                                                 }
                                                                 : {}
                                                         }
                                                     >
                                                         {!article.imageUrl && (
-                                                            <span className="article-emoji">
-                                                                ✨
-                                                            </span>
+                                                            <span className="article-emoji">✨</span>
                                                         )}
 
                                                         <span className="category-pill article-category">
-                                                            {article.blogType ||
-                                                                "Story"}
+                                                            {article.blogType || "Story"}
                                                         </span>
 
                                                         <span className="article-number">
-                                                            {String(
-                                                                index + 1
-                                                            ).padStart(2, "0")}
+                                                            {String(index + 1).padStart(2, "0")}
                                                         </span>
                                                     </div>
 
                                                     <div className="article-info">
                                                         <div className="article-meta">
                                                             <span>
-                                                                ✎{" "}
-                                                                {article.authorName ||
+                                                                ✎ {article.authorName ||
                                                                     article.authorUsername ||
                                                                     "Scribbly Author"}
                                                             </span>
-
                                                             <span>
-                                                                {formatDate(
-                                                                    article.createdAt
-                                                                )}
+                                                                {formatDate(article.createdAt)}
                                                             </span>
                                                         </div>
 
                                                         <h3>
-                                                            {article.title ||
-                                                                "Untitled story"}
+                                                            {article.title || "Untitled story"}
                                                         </h3>
 
                                                         {article.subtitle && (
-                                                            <p>
-                                                                {article.subtitle}
-                                                            </p>
+                                                            <p>{article.subtitle}</p>
                                                         )}
 
                                                         <button
@@ -1244,20 +1422,17 @@ function Home() {
                                                             className="read-link"
                                                             onClick={() => {
                                                                 closeSearch();
-                                                                navigate(
-                                                                    `/post/${article.id}`
-                                                                );
+                                                                navigate(`/post/${article.id}`);
                                                             }}
                                                         >
-                                                            Read story{" "}
-                                                            <span>↗</span>
+                                                            Read story <span>↗</span>
                                                         </button>
                                                     </div>
                                                 </article>
-                                            )
-                                        )}
-                                    </div>
-                                )}
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 
