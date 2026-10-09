@@ -1,4 +1,5 @@
-const { pool } = require('../config/db');
+const { Op } = require('sequelize');
+const { Post, User } = require('../models');
 
 const parseJsonField = (value, fallback = []) => {
     if (value === null || value === undefined) {
@@ -17,6 +18,36 @@ const parseJsonField = (value, fallback = []) => {
 };
 
 
+const formatPost = (postInstance) => {
+    if (!postInstance) {
+        return null;
+    }
+
+    const post = postInstance.toJSON();
+
+    const writer = post.writer || null;
+
+    post.authorName = writer ? writer.name : null;
+    post.authorUsername = writer ? writer.username : null;
+
+   
+    delete post.writer;
+
+    post.contentJson = parseJsonField(post.contentJson);
+    post.overlays = parseJsonField(post.overlays);
+
+    return post;
+};
+
+
+const authorInclude = {
+    model: User,
+    as: 'writer',
+    attributes: ['name', 'username'],
+    required: true
+};
+
+
 const createPost = async (req, res, next) => {
     try {
         const {
@@ -27,7 +58,7 @@ const createPost = async (req, res, next) => {
             alignment,
             imageUrl,
             contentJson,
-            overlays,
+            overlays
         } = req.body;
 
         if (!title) {
@@ -36,41 +67,23 @@ const createPost = async (req, res, next) => {
             });
         }
 
-        const [result] = await pool.execute(
-            `INSERT INTO posts
-            (author, title, subtitle, vibeColor, blogType, alignment, imageUrl, contentJson, overlays)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                req.user.id,
-                title,
-                subtitle || null,
-                vibeColor || '#ffffff',
-                blogType || 'post',
-                alignment || 'center',
-                imageUrl || null,
-                JSON.stringify(contentJson || []),
-                JSON.stringify(overlays || [])
-            ]
-        );
+        const post = await Post.create({
+            author: req.user.id,
+            title,
+            subtitle: subtitle || null,
+            vibeColor: vibeColor || '#ffffff',
+            blogType: blogType || 'post',
+            alignment: alignment || 'center',
+            imageUrl: imageUrl || null,
+            contentJson: parseJsonField(contentJson, []),
+            overlays: parseJsonField(overlays, [])
+        });
 
-        const [posts] = await pool.execute(
-            `SELECT 
-                p.*,
-                u.name AS authorName,
-                u.username AS authorUsername
-             FROM posts p
-             JOIN users u ON p.author = u.id
-             WHERE p.id = ?`,
-            [result.insertId]
-        );
+        const createdPost = await Post.findByPk(post.id, {
+            include: [authorInclude]
+        });
 
-        const post = posts[0];
-
-        post.contentJson = parseJsonField(post.contentJson);
-        post.overlays = parseJsonField(post.overlays);
-
-        res.status(201).json(post);
-
+        return res.status(201).json(formatPost(createdPost));
     } catch (error) {
         next(error);
     }
@@ -81,39 +94,25 @@ const getPosts = async (req, res, next) => {
     try {
         const { search = '', blogType = '' } = req.query;
 
-        let query = `
-            SELECT
-                p.*,
-                u.name AS authorName,
-                u.username AS authorUsername
-            FROM posts p
-            JOIN users u ON p.author = u.id
-            WHERE 1 = 1
-        `;
-
-        const params = [];
+        const where = {};
 
         if (blogType) {
-            query += ` AND p.blogType = ?`;
-            params.push(blogType);
+            where.blogType = blogType;
         }
 
         if (search) {
-            query += ` AND p.title LIKE ?`;
-            params.push(`%${search}%`);
+            where.title = {
+                [Op.like]: `%${search}%`
+            };
         }
 
-        query += ` ORDER BY p.createdAt DESC`;
-
-        const [posts] = await pool.execute(query, params);
-
-        posts.forEach((post) => {
-            post.contentJson = parseJsonField(post.contentJson);
-            post.overlays = parseJsonField(post.overlays);
+        const posts = await Post.findAll({
+            where,
+            include: [authorInclude],
+            order: [['createdAt', 'DESC']]
         });
 
-        res.json(posts);
-
+        return res.json(posts.map(formatPost));
     } catch (error) {
         next(error);
     }
@@ -122,57 +121,33 @@ const getPosts = async (req, res, next) => {
 
 const getMyPosts = async (req, res, next) => {
     try {
-        const [posts] = await pool.execute(
-            `SELECT
-                p.*,
-                u.name AS authorName,
-                u.username AS authorUsername
-             FROM posts p
-             JOIN users u ON p.author = u.id
-             WHERE p.author = ?
-             ORDER BY p.createdAt DESC`,
-            [req.user.id]
-        );
-
-        posts.forEach((post) => {
-            post.contentJson = parseJsonField(post.contentJson);
-            post.overlays = parseJsonField(post.overlays);
+        const posts = await Post.findAll({
+            where: {
+                author: req.user.id
+            },
+            include: [authorInclude],
+            order: [['createdAt', 'DESC']]
         });
 
-        res.json(posts);
+        return res.json(posts.map(formatPost));
     } catch (error) {
         next(error);
     }
 };
 
-
 const getPostById = async (req, res, next) => {
     try {
-        const [posts] = await pool.execute(
-            `SELECT
-                p.*,
-                u.name AS authorName,
-                u.username AS authorUsername
-             FROM posts p
-             JOIN users u ON p.author = u.id
-             WHERE p.id = ?
-             LIMIT 1`,
-            [req.params.id]
-        );
+        const post = await Post.findByPk(req.params.id, {
+            include: [authorInclude]
+        });
 
-        if (posts.length === 0) {
+        if (!post) {
             return res.status(404).json({
                 message: 'Post not found'
             });
         }
 
-        const post = posts[0];
-
-        post.contentJson = parseJsonField(post.contentJson);
-        post.overlays = parseJsonField(post.overlays);
-
-        res.json(post);
-
+        return res.json(formatPost(post));
     } catch (error) {
         next(error);
     }
@@ -181,18 +156,13 @@ const getPostById = async (req, res, next) => {
 
 const updatePost = async (req, res, next) => {
     try {
-        const [posts] = await pool.execute(
-            `SELECT * FROM posts WHERE id = ? LIMIT 1`,
-            [req.params.id]
-        );
+        const post = await Post.findByPk(req.params.id);
 
-        if (posts.length === 0) {
+        if (!post) {
             return res.status(404).json({
                 message: 'Post not found'
             });
         }
-
-        const post = posts[0];
 
         if (
             String(post.author) !== String(req.user.id) &&
@@ -203,113 +173,81 @@ const updatePost = async (req, res, next) => {
             });
         }
 
-        const {
-            title,
-            subtitle,
-            vibeColor,
-            blogType,
-            alignment,
-            imageUrl,
-            contentJson,
-            overlays,
-        } = req.body;
+        const fields = [
+            'title',
+            'subtitle',
+            'vibeColor',
+            'blogType',
+            'alignment',
+            'imageUrl',
+            'contentJson',
+            'overlays'
+        ];
 
-        const finalContentJson =
-            contentJson !== undefined
-                ? contentJson
-                : parseJsonField(post.contentJson);
+        const updates = {};
 
-        const finalOverlays =
-            overlays !== undefined
-                ? overlays
-                : parseJsonField(post.overlays);
-
-        await pool.execute(
-            `UPDATE posts
-             SET title = ?,
-                 subtitle = ?,
-                 vibeColor = ?,
-                 blogType = ?,
-                 alignment = ?,
-                 imageUrl = ?,
-                 contentJson = ?,
-                 overlays = ?
-             WHERE id = ?`,
-            [
-                title ?? post.title,
-                subtitle ?? post.subtitle,
-                vibeColor ?? post.vibeColor,
-                blogType ?? post.blogType,
-                alignment ?? post.alignment,
-                imageUrl ?? post.imageUrl,
-                JSON.stringify(finalContentJson),
-                JSON.stringify(finalOverlays),
-                req.params.id
-            ]
-        );
-
-        const [updatedPosts] = await pool.execute(
-            `SELECT
-                p.*,
-                u.name AS authorName,
-                u.username AS authorUsername
-             FROM posts p
-             JOIN users u ON p.author = u.id
-             WHERE p.id = ?`,
-            [req.params.id]
-        );
-
-        const updatedPost = updatedPosts[0];
-
-        updatedPost.contentJson = parseJsonField(updatedPost.contentJson);
-        updatedPost.overlays = parseJsonField(updatedPost.overlays);
-
-        res.json(updatedPost);
-
-    } catch (error) {
-        next(error);
-    }
-};
-
-
-const deletePost = async (req, res, next) => {
-    try {
-        const [posts] = await pool.execute(
-            `SELECT * FROM posts WHERE id = ? LIMIT 1`,
-            [req.params.id]
-        );
-
-        if (posts.length === 0) {
-            return res.status(404).json({
-                message: 'Post not found'
-            });
+        for (const field of fields) {
+            if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+                updates[field] = req.body[field];
+            }
         }
 
-        const post = posts[0];
-
-        if (
-            String(post.author) !== String(req.user.id) &&
-            req.user.role !== 'admin'
-        ) {
-            return res.status(403).json({
-                message: 'Not allowed'
-            });
+        
+        if (Object.prototype.hasOwnProperty.call(updates, 'contentJson')) {
+            updates.contentJson = parseJsonField(
+                updates.contentJson,
+                []
+            );
         }
 
-        await pool.execute(
-            `DELETE FROM posts WHERE id = ?`,
-            [req.params.id]
-        );
+        if (Object.prototype.hasOwnProperty.call(updates, 'overlays')) {
+            updates.overlays = parseJsonField(
+                updates.overlays,
+                []
+            );
+        }
 
-        res.json({
-            message: 'Post deleted'
+        await post.update(updates);
+
+        const updatedPost = await Post.findByPk(post.id, {
+            include: [authorInclude]
         });
 
+        return res.json(formatPost(updatedPost));
     } catch (error) {
         next(error);
     }
 };
 
+// DELETE POST
+const deletePost = async (req, res, next) => {
+    try {
+        const post = await Post.findByPk(req.params.id);
+
+        if (!post) {
+            return res.status(404).json({
+                message: 'Post not found'
+            });
+        }
+
+        if (
+            String(post.author) !== String(req.user.id) &&
+            req.user.role !== 'admin'
+        ) {
+            return res.status(403).json({
+                message: 'Not allowed'
+            });
+        }
+
+        await post.destroy();
+
+        return res.json({
+            message: 'Post deleted'
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 
 module.exports = {
     createPost,

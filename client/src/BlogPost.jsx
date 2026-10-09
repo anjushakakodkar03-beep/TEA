@@ -12,21 +12,21 @@ function BlogPost() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Like state
+  
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
 
-  // Share state
+  
   const [shareMessage, setShareMessage] = useState("");
 
-  // Comment state
+  
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [commentError, setCommentError] = useState("");
 
-  // Fetch blog post
+  
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -45,7 +45,7 @@ const data = await response.json();
 
 setPost(data);
 
-// Use existing likes value if your backend provides one
+
 setLikeCount(
   Number(data.likesCount || data.likes || 0)
 );
@@ -61,7 +61,7 @@ setLikeCount(
 fetchPost();
   }, [id]);
 
-// Fetch comments
+
 useEffect(() => {
   const fetchComments = async () => {
     try {
@@ -93,7 +93,7 @@ useEffect(() => {
   }
 }, [id]);
 
-// Handle Like / Unlike
+
 const handleLike = () => {
   if (liked) {
     setLiked(false);
@@ -108,7 +108,7 @@ const handleLike = () => {
   }
 };
 
-// Share article on WhatsApp
+
 const handleWhatsAppShare = () => {
   const articleUrl =
     `${window.location.origin}/post/${id}`;
@@ -130,7 +130,7 @@ const handleWhatsAppShare = () => {
   );
 };
 
-// Copy article link
+
 const handleCopyLink = async () => {
   const articleUrl =
     `${window.location.origin}/post/${id}`;
@@ -158,7 +158,7 @@ const handleCopyLink = async () => {
   }
 };
 
-// Add comment
+
 const handleAddComment = async (e) => {
   e.preventDefault();
 
@@ -209,13 +209,13 @@ const handleAddComment = async (e) => {
       );
     }
 
-    // Add new comment at the top
+    
     setComments((currentComments) => [
       data,
       ...currentComments,
     ]);
 
-    // Clear input
+    
     setCommentText("");
   } catch (err) {
     setCommentError(
@@ -227,7 +227,7 @@ const handleAddComment = async (e) => {
   }
 };
 
-// Scroll to comments
+
 const scrollToComments = () => {
   const commentsSection =
     document.getElementById("comments");
@@ -265,8 +265,7 @@ if (error || !post) {
   );
 }
 
-// Handle contentJson stored as either
-// an array or JSON string
+
 let content = [];
 
 try {

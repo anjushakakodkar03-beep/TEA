@@ -35,7 +35,7 @@ function AuthPage() {
   const [phoneError, setPhoneError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Validate name
+  
   const validateName = (name) => {
     const trimmedName = name.trim();
 
@@ -47,7 +47,6 @@ function AuthPage() {
       return "Name must contain at least 2 characters.";
     }
 
-    // Allows alphabets and spaces only
     const nameRegex = /^[A-Za-z]+(?:\s+[A-Za-z]+)*$/;
 
     if (!nameRegex.test(trimmedName)) {
@@ -57,7 +56,7 @@ function AuthPage() {
     return "";
   };
 
-  // Validate phone number
+  
   const validatePhone = (phone) => {
     if (!phone) {
       return "Please enter your phone number.";
@@ -82,12 +81,12 @@ function AuthPage() {
       [name]: value,
     });
 
-    // Validate name while typing
+    
     if (name === "name" && !isLogin) {
       setNameError(validateName(value));
     }
 
-    // Validate phone while typing
+    
     if (name === "phoneNo" && !isLogin) {
       setPhoneError(validatePhone(value));
     }
@@ -97,7 +96,7 @@ function AuthPage() {
     e.preventDefault();
     setMessage("");
 
-    // Validate registration fields
+    
     if (!isLogin) {
       const validationError = validateName(formData.name);
       const phoneValidationError = validatePhone(formData.phoneNo);
@@ -114,7 +113,7 @@ function AuthPage() {
         setPhoneError("");
       }
 
-      // Stop registration if validation fails
+      
       if (validationError || phoneValidationError) {
         return;
       }

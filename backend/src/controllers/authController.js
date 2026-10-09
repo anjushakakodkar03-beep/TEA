@@ -1,5 +1,6 @@
+
 const bcrypt = require('bcryptjs');
-const { pool } = require('../config/db');
+const { User } = require('../models');
 const generateToken = require('../utils/generateToken');
 
 const buildAuthResponse = (user) => ({
@@ -11,6 +12,7 @@ const buildAuthResponse = (user) => ({
     role: user.role,
     token: generateToken(user.id),
 });
+
 
 const registerUser = async (req, res, next) => {
     try {
@@ -26,62 +28,54 @@ const registerUser = async (req, res, next) => {
         const normalizedEmail = String(email).trim().toLowerCase();
         const normalizedUsername = String(username).trim();
 
-        // Check if email already exists
-        const [existingByEmail] = await pool.execute(
-            'SELECT * FROM users WHERE email = ? LIMIT 1',
-            [normalizedEmail]
-        );
+        
+        const existingByEmail = await User.findOne({
+            where: { email: normalizedEmail }
+        });
 
-        if (existingByEmail.length > 0) {
+        if (existingByEmail) {
             return res.status(400).json({
                 message: 'User already exists.'
             });
         }
 
-        // Check if username already exists
-        const [existingByUsername] = await pool.execute(
-            'SELECT * FROM users WHERE username = ? LIMIT 1',
-            [normalizedUsername]
-        );
+        
+        const existingByUsername = await User.findOne({
+            where: { username: normalizedUsername }
+        });
 
-        if (existingByUsername.length > 0) {
+        if (existingByUsername) {
             return res.status(400).json({
                 message: 'Username already exists.'
             });
         }
 
-        // Hash password
+        
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Insert user
-        const [result] = await pool.execute(
-            `INSERT INTO users
-            (name, username, phoneNo, email, password, role)
-            VALUES (?, ?, ?, ?, ?, ?)`,
-            [
-                String(finalName).trim(),
-                normalizedUsername,
-                String(phoneNo).trim(),
-                normalizedEmail,
-                hashedPassword,
-                'user'
-            ]
-        );
-
-        // Get newly created user
-        const [users] = await pool.execute(
-            'SELECT * FROM users WHERE id = ? LIMIT 1',
-            [result.insertId]
-        );
-
-        const user = users[0];
+        
+        const user = await User.create({
+            name: String(finalName).trim(),
+            username: normalizedUsername,
+            phoneNo: String(phoneNo).trim(),
+            email: normalizedEmail,
+            password: hashedPassword,
+            role: 'user'
+        });
 
         return res.status(201).json(buildAuthResponse(user));
-
     } catch (error) {
+        
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            return res.status(400).json({
+                message: 'User or username already exists.'
+            });
+        }
+
         return next(error);
     }
 };
+
 
 const loginUser = async (req, res, next) => {
     try {
@@ -95,21 +89,18 @@ const loginUser = async (req, res, next) => {
 
         const normalizedEmail = String(email).trim().toLowerCase();
 
-        // Find user by email
-        const [users] = await pool.execute(
-            'SELECT * FROM users WHERE email = ? LIMIT 1',
-            [normalizedEmail]
-        );
+        
+        const user = await User.findOne({
+            where: { email: normalizedEmail }
+        });
 
-        if (users.length === 0) {
+        if (!user) {
             return res.status(401).json({
                 message: 'Invalid email or password.'
             });
         }
 
-        const user = users[0];
-
-        // Compare password
+        
         const passwordMatches = await bcrypt.compare(
             password,
             user.password
@@ -122,14 +113,14 @@ const loginUser = async (req, res, next) => {
         }
 
         return res.json(buildAuthResponse(user));
-
     } catch (error) {
         return next(error);
     }
 };
 
+
 const getProfile = async (req, res) => {
-    res.json(req.user);
+    return res.json(req.user);
 };
 
 module.exports = {
@@ -137,3 +128,4 @@ module.exports = {
     loginUser,
     getProfile
 };
+

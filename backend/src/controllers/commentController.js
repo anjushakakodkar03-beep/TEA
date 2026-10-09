@@ -1,4 +1,6 @@
-const { pool } = require('../config/db');
+
+const { Comment, Post, User } = require('../models');
+
 
 const addComment = async (req, res, next) => {
     try {
@@ -10,84 +12,108 @@ const addComment = async (req, res, next) => {
             });
         }
 
-        // Check whether the post exists
-        const [posts] = await pool.execute(
-            'SELECT id FROM posts WHERE id = ? LIMIT 1',
-            [req.params.postId]
-        );
+        
+        const post = await Post.findByPk(req.params.postId, {
+            attributes: ['id']
+        });
 
-        if (posts.length === 0) {
+        if (!post) {
             return res.status(404).json({
                 message: 'Post not found'
             });
         }
 
-        // Insert comment
-        const [result] = await pool.execute(
-            `INSERT INTO comments
-            (post, author, text)
-            VALUES (?, ?, ?)`,
-            [
-                req.params.postId,
-                req.user.id,
-                String(text).trim()
+       
+        const comment = await Comment.create({
+            post: req.params.postId,
+            author: req.user.id,
+            text: String(text).trim()
+        });
+
+        
+        const savedComment = await Comment.findByPk(comment.id, {
+            attributes: [
+                'id',
+                'post',
+                'author',
+                'text',
+                'createdAt',
+                'updatedAt'
+            ],
+            include: [
+                {
+                    model: User,
+                    as: 'commentAuthor',
+                    attributes: ['name', 'username']
+                }
             ]
-        );
+        });
 
-        // Return the newly created comment with author details
-        const [comments] = await pool.execute(
-            `SELECT
-                c.id,
-                c.post,
-                c.author,
-                c.text,
-                c.createdAt,
-                c.updatedAt,
-                u.name AS authorName,
-                u.username AS authorUsername
-             FROM comments c
-             JOIN users u ON c.author = u.id
-             WHERE c.id = ?
-             LIMIT 1`,
-            [result.insertId]
-        );
+        const commentData = savedComment.toJSON();
 
-        res.status(201).json(comments[0]);
-
+        return res.status(201).json({
+            id: commentData.id,
+            post: commentData.post,
+            author: commentData.author,
+            text: commentData.text,
+            createdAt: commentData.createdAt,
+            updatedAt: commentData.updatedAt,
+            authorName: commentData.commentAuthor?.name || null,
+            authorUsername: commentData.commentAuthor?.username || null
+        });
     } catch (error) {
-        next(error);
+        return next(error);
     }
 };
 
 
 const getComments = async (req, res, next) => {
     try {
-        const [comments] = await pool.execute(
-            `SELECT
-                c.id,
-                c.post,
-                c.author,
-                c.text,
-                c.createdAt,
-                c.updatedAt,
-                u.name AS authorName,
-                u.username AS authorUsername
-             FROM comments c
-             JOIN users u ON c.author = u.id
-             WHERE c.post = ?
-             ORDER BY c.createdAt DESC`,
-            [req.params.postId]
-        );
+        const comments = await Comment.findAll({
+            where: {
+                post: req.params.postId
+            },
+            attributes: [
+                'id',
+                'post',
+                'author',
+                'text',
+                'createdAt',
+                'updatedAt'
+            ],
+            include: [
+                {
+                    model: User,
+                    as: 'commentAuthor',
+                    attributes: ['name', 'username']
+                }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
 
-        res.json(comments);
+        const formattedComments = comments.map((comment) => {
+            const commentData = comment.toJSON();
 
+            return {
+                id: commentData.id,
+                post: commentData.post,
+                author: commentData.author,
+                text: commentData.text,
+                createdAt: commentData.createdAt,
+                updatedAt: commentData.updatedAt,
+                authorName: commentData.commentAuthor?.name || null,
+                authorUsername: commentData.commentAuthor?.username || null
+            };
+        });
+
+        return res.json(formattedComments);
     } catch (error) {
-        next(error);
+        return next(error);
     }
 };
-
 
 module.exports = {
     addComment,
     getComments
 };
+
